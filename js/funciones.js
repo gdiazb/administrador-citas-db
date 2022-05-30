@@ -114,12 +114,18 @@ export function reiniciarObj() {
 }
 
 export function eliminarCita(id) {
-  //Eliminar la cita
-  administrarCitas.eliminarCita(id)
-  //Mostrar mensaje de eliminado correctamente
-  ui.imprimirAlerta('Eliminado correctamente')
-  //Refrescar las citas
-  ui.imprimirCitas()
+
+  const transaction = DB.transaction(['citas'], 'readwrite')
+  const objectStore = transaction.objectStore('citas')
+  objectStore.delete(id)
+
+  transaction.oncomplete = () => {
+    console.log(`Cita ${id} eliminada`)
+    //Mostrar mensaje de eliminado correctamente
+    ui.imprimirAlerta('Eliminado correctamente')
+    //Refrescar las citas
+    ui.imprimirCitas()
+  }
 }
 
 export function cargarEdicion(cita) {
