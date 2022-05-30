@@ -55,12 +55,25 @@ export function validarForm() {
 
   if (moodEdit) {
     administrarCitas.editarCita({ ...citaObj })
-    //Cambiar texto del botón
-    formulario.querySelector('button[type="submit"]').textContent = 'Crear cita'
-    //Mostrar Alerta
-    ui.imprimirAlerta('Se editó correctamente')
-    //quitar modo edición
-    moodEdit = false
+
+    const transaction = DB.transaction(['citas'], 'readwrite')
+    const objectStore = transaction.objectStore('citas')
+
+    objectStore.put(citaObj)
+
+    transaction.oncomplete = () => {
+      //Cambiar texto del botón
+      formulario.querySelector('button[type="submit"]').textContent = 'Crear cita'
+      //Mostrar Alerta
+      ui.imprimirAlerta('Se editó correctamente')
+      //quitar modo edición
+      moodEdit = false
+    }
+
+    transaction.onerror = () => {
+      console.log('hubo un error')
+    }
+
   } else {
     citaObj.id = Date.now()
 
@@ -207,6 +220,7 @@ export function imprimirCitasNoUI() {
       btnEditar.classList.add('btn', 'btn-info')
       btnEditar.innerHTML =
         'Editar <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>'
+      const cita = cursor.value
       btnEditar.onclick = () => cargarEdicion(cita)
   
       //add delete btn
